@@ -1,11 +1,41 @@
-- name: 'Remove previous elastic-component settings'
-  ansible.builtin.file:
-    path: '/tmp/elastic-component'
+- name: 'Get source and setup runner for work'
+  block:
+    - name: 'Remove previous elastic-component settings'
+      ansible.builtin.file:
+        path: '/tmp/elastic-component'
 
-    # Директория будет рекурсивно удалена
-    state: absent
+        # Директория будет рекурсивно удалена
+        state: absent
 
-- name: 'Clone new settings'
-  ansible.builtin.git:
-    repo: 'https://github.com/neopoleones/elastic-component'
-    dest: '/tmp/elastic-component'
+    - name: 'Clone new settings'
+      ansible.builtin.git:
+        repo: 'https://github.com/neopoleones/elastic-component'
+        dest: '/tmp/elastic-component'
+
+    - name: 'Create build directory'
+      ansible.builtin.file:
+        path: '/tmp/elastic-component/build'
+        state: directory
+
+# Здесь будет разбираться с темплейтами компонентов
+- name: 'Prepare configuration of component templates'
+  block:
+    - name: 'Find component templates'
+      ansible.builtin.find:
+        paths: /tmp/elastic-component/components
+        patterns: '*.yaml,*.yml'
+      register: f_components
+
+    - name: 'Find settings'
+      ansible.builtin.find:
+        paths: /tmp/elastic-component/settings
+        patterns: '*.yaml,*.yml'
+      register: f_settings
+
+    - name: Print settings we've found
+      ansible.builtin.debug:
+        var: f_components
+  
+    - name: Print templates we've found
+      ansible.builtin.debug:
+        var: f_settings
