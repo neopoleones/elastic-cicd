@@ -1,3 +1,7 @@
+- name: 'Show system information'
+  ansible.builtin.shell:
+    cmd: 'uname -a'
+
 - name: 'Install depedencies on builder system'
   apt:
     pkg:
