@@ -17,7 +17,7 @@
         path: '/tmp/elastic-component/build'
         state: directory
 
-# Здесь будет разбираться с темплейтами компонентов
+# Здесь разбираемся с темплейтами компонентов
 - name: 'Prepare configuration of component templates'
   block:
     - name: 'Find component templates'
@@ -33,10 +33,18 @@
         recurse: true 
       register: f_settings
 
-    - name: Print settings we've found
-      ansible.builtin.debug:
-        var: f_components
-  
-    - name: Print templates we've found
-      ansible.builtin.debug:
-        var: f_settings
+    - name: Show settings 
+      command: "cat {{ item }}"
+      register: objs
+
+      loop: "{{ f_settings }}"
+
+    - debug:
+        msg:
+          - "settings: {{ obj }}"
+        vars:
+          obj: "{{ item.stdout | from_yaml }}"
+        
+        loop: "{{ objs.results }}"
+        loop_control:
+          label: "{{ item.item }}"
