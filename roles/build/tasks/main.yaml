@@ -34,10 +34,10 @@
       register: f_settings
 
     - name: Show settings 
-      command: "cat {{ item }}"
+      command: "cat {{ item.path }}"
       register: objs
 
-      loop: "{{ f_settings }}"
+      loop: "{{ f_settings.files }}"
 
     - debug:
         msg:
