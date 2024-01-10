@@ -30,6 +30,7 @@
       ansible.builtin.find:
         paths: /tmp/elastic-component/settings
         patterns: '*.yaml,*.yml'
+        recurse: true 
       register: f_settings
 
     - name: Print settings we've found
