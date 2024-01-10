@@ -42,7 +42,7 @@
     - debug:
         msg:
           - "settings: {{ obj }}"
-      var:
+      vars:
         obj: "{{ item.stdout | from_yaml }}"
         
       loop: "{{ objs.results }}"
