@@ -3,3 +3,9 @@
   gather_facts: False
   roles:
     - deps
+
+- hosts: local
+
+  gather_facts: False
+  roles:
+    - build
