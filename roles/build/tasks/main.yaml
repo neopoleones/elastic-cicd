@@ -41,5 +41,10 @@
 
     - debug:
         msg:
-          - "settings: {{ item.stdout | from_yaml }}"
-        loop: "{{ objs.results }}"
+          - "settings: {{ obj }}"
+      var:
+        obj: "{{ item.stdout | from_yaml }}"
+        
+      loop: "{{ objs.results }}"
+      loop_control:
+        label: "{{ item.item }}"
