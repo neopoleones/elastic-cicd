@@ -1,0 +1,11 @@
+- name: 'Remove previous elastic-component settings'
+  ansible.builtin.file:
+    path: '/tmp/elastic-component'
+
+    # Директория будет рекурсивно удалена
+    state: absent
+
+- name: 'Clone new settings'
+  ansible.builtin.git:
+    repo: 'https://github.com/neopoleones/elastic-component'
+    dest: '/tmp/elastic-component'
