@@ -5,9 +5,6 @@
       - python3-pip
     state: latest
 
-- name: 'Get pip'
-
-
 - name: 'Install modules using pip'
   pip:
     name: pyyaml
