@@ -4,12 +4,12 @@
   become_method: su
   become_user: root
 
-  gather_facts: False
+  gather_facts: true
   roles:
     - deps
 
 - hosts: localhost
 
-  gather_facts: False
+  gather_facts: false
   roles:
     - build
