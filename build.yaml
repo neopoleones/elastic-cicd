@@ -1,15 +1,5 @@
 - hosts: localhost
 
-  become: true
-  become_method: su
-  become_user: 0
-
-  gather_facts: true
-  roles:
-    - deps
-
-- hosts: localhost
-
   gather_facts: false
   roles:
     - build
