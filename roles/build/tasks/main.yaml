@@ -33,18 +33,12 @@
         recurse: true 
       register: f_settings
 
-    - name: Show settings 
+    - name: Get settings content
       command: "cat {{ item.path }}"
-      register: objs
 
+      register: objs
       loop: "{{ f_settings.files }}"
 
-    - debug:
-        msg:
-          - "settings: {{ obj }}"
-      vars:
-        obj: "{{ item.stdout | from_yaml }}"
-        
-      loop: "{{ objs.results }}"
-      loop_control:
-        label: "{{ item.item }}"
+    - name: Show semaphore_vars
+      debug:
+        msg: "{{ semaphore_vars }}"
