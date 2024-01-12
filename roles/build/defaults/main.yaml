@@ -1,4 +1,10 @@
 ---
 
 semaphore_vars:
-  test: hello
+    task_details:
+        type: build
+        username: user123
+        message: Some new build!
+        target_version: 0
+
+components_repo: "https://github.com/neopoleones/elastic-component"

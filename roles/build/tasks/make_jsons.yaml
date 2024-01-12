@@ -1,0 +1,17 @@
+- block:
+  - name: 'Create jsons directory: <v{{ b_version }}>'
+    file:
+      path: "{{ component_path }}/jsons"
+      state: directory
+    
+  - name: 'Move components enriched with settings to jsons'
+    copy:
+      dest: "{{ path }}"
+      content: "{{ nested | to_json }}"
+
+    vars:
+      nested:
+        template: "{{ item.value }}"
+      path: "{{ component_path }}/jsons/{{ item.key }}.json"
+    with_dict: "{{ built_components }}"
+    

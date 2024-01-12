@@ -1,0 +1,54 @@
+# Loads settings and components from specified location
+
+# Arguments:
+#   component_path: path to current version
+# Sets:
+#   components: name=>template.settings
+#   settings: name=>setup.payload
+
+- block:
+    - name: 'Load assets'
+      block:
+        - name: 'Find components'
+          ansible.builtin.find:
+            paths: "{{ component_path }}/components"
+            patterns: '*.yaml,*.yml'
+          register: f_components
+    
+        - name: 'Find settings'
+          ansible.builtin.find:
+            recurse: True 
+            paths: "{{component_path}}/settings"
+            patterns: '*.yaml,*.yml'
+          register: f_settings
+        
+        - name: 'Load settings'
+          set_fact:
+            settings: "{{ settings | default({}) | combine( {obj.setup.name: obj.setup.payload} ) }}"
+          vars:
+            obj: "{{ lookup('file', item.path) | from_yaml }}"
+          with_items: "{{ f_settings.files }}"
+
+        - name: 'Load components'
+          set_fact:
+            components: "{{ components | default({}) | combine( {obj.component.name: obj.component.template} ) }}"
+          vars:
+            obj: "{{ lookup('file', item.path) | from_yaml }}"
+          with_items: "{{ f_components.files }}"
+        
+        - name: 'Parse component status file'
+          set_fact:
+            components_status_raw: "{{ lookup('file', path) | from_yaml }}"
+          vars:
+            path: "{{ component_path }}/components.yaml"
+        
+        - name: 'Load statuses as dict'
+          set_fact:
+            components_status: "{{ components_status | default({}) | combine({item.name: item.enabled})}}"
+          loop: "{{ components_status_raw.components }}"
+
+    - name: 'Show loaded info'
+      ansible.builtin.debug:
+        msg:
+          settings: "{{ f_settings.examined }}"
+          components: "{{ f_components.examined }}"

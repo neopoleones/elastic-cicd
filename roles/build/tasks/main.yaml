@@ -1,44 +1,30 @@
-- name: 'Get source and setup runner for work'
+- name: 'Get source code and setup runner for work'
   block:
-    - name: 'Remove previous elastic-component settings'
+    - name: 'Initalizing task with variables'
+      set_fact:
+        b_version: "{{ semaphore_vars.task_details.target_version | int }}"
+        component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.target_version }}"
+
+    - name: 'Check if generic build directory exists'
       ansible.builtin.file:
-        path: '/tmp/elastic-component'
-
-        # Директория будет рекурсивно удалена
-        state: absent
-
-    - name: 'Clone new settings'
-      ansible.builtin.git:
-        repo: 'https://github.com/neopoleones/elastic-component'
-        dest: '/tmp/elastic-component'
-
-    - name: 'Create build directory'
-      ansible.builtin.file:
-        path: '/tmp/elastic-component/build'
+        path: '/opt/semaphore_data/builds/'
         state: directory
 
-# Здесь разбираемся с темплейтами компонентов
-- name: 'Prepare configuration of component templates'
-  block:
-    - name: 'Find component templates'
-      ansible.builtin.find:
-        paths: /tmp/elastic-component/components
-        patterns: '*.yaml,*.yml'
-      register: f_components
+    - name: 'Delete if component directory exists: <v{{ b_version }}>'
+      ansible.builtin.file:
+        path: "{{ component_path }}"
+        state: absent
 
-    - name: 'Find settings'
-      ansible.builtin.find:
-        paths: /tmp/elastic-component/settings
-        patterns: '*.yaml,*.yml'
-        recurse: true 
-      register: f_settings
+    - name: 'Clone the elastic-component settigns: <v{{ b_version }}>'
+      ansible.builtin.git:
+        repo: '{{ components_repo }}'
+        dest: "{{ component_path }}"
 
-    - name: Get settings content
-      command: "cat {{ item.path }}"
+- name: 'Load settings and components'
+  include_tasks: load.yaml
 
-      register: objs
-      loop: "{{ f_settings.files }}"
+- name: 'Combine settings and components'
+  include_tasks: combine.yaml
 
-    - name: Show semaphore_vars
-      debug:
-        msg: "{{ semaphore_vars }}"
+- name: 'Make jsons (unpacked build)'
+  include_tasks: make_jsons.yaml
