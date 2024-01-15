@@ -1,5 +1,8 @@
 - hosts: localhost
 
+  vars_files:
+    - .secret.enc
+
   gather_facts: false
   roles:
     - build
