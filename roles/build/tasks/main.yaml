@@ -63,27 +63,29 @@
       register: file_result
       loop: "{{ range(b_version|int, -1, -1) | list }}"
 
+    - name: Set file found and version
+
+      set_fact:
+        file_found: "{{ item.stat.exists }}"
+        component_path: "{{ item.stat.path | dirname }}"
+
+      when: item.stat.exists
+      loop: "{{ file_result.results }}"
+
     - set_fact:
-        backups: "{{ file_result.results | json_query('[?stat.exists].stat.path') }}"
-    
+        file_found: "{{file_found | default(false) }}"
+
     - fail:
         msg: "No good builds found. Rollback failed"
-      when: (backups | length) == 0
+      when: not file_found
 
     - block:
         - debug:
-            msg: "Found rollback: {{ new_path }}"
-
-        - name: "Update component_path for initializing backup process" 
-          set_fact:
-            component_path: "{{ new_path }}"
+            msg: "Found rollback: {{ component_path }}"
 
         - name: "Run update with correct templates"
           include_tasks: "update.yaml"
 
-      vars:
-        new_path: "{{ backups[0] | dirname }}"
-
-      when: (backups | length) > 0
+      when: file_found
 
   when: update_status != 0
