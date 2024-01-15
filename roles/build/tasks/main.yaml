@@ -58,7 +58,7 @@
       vars:
         fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
       stat:
-        path: "{{ file_path }}"
+        path: "{{ fp }}"
 
       register: file_result
       until: file_result.stat.exists
