@@ -34,4 +34,10 @@
     - name: 'Check if secret provided'
       debug:
         msg: '{{ elastic_user }} {{ elastic_password }}'
+  
+    - name: 'Set elastic_test_host as curr_elastic_host'
+      set_fact:
+        curr_elastic_host: '{{ elastic_test_host  }}'
     
+    - name: 'Check configuration on test host'
+      include_tasks: update.yaml

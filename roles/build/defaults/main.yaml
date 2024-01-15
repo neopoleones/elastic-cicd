@@ -8,4 +8,4 @@ semaphore_vars:
         target_version: 0
 
 components_repo: "https://github.com/neopoleones/elastic-component"
-elastic_test: 'http://someinstance'
+elastic_test_host: 'https://security-soc-esk-test.el.wb.ru:9200'
