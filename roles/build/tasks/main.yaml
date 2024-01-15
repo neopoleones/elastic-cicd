@@ -54,36 +54,36 @@
 
 - name: 'Configs are bad. Doing rollback'
   block:
-    - name: Check for file and decrement VERSION
+    - name: Check for file and decrement b_version
       vars:
         fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
       stat:
         path: "{{ fp }}"
 
       register: file_result
-      until: file_result.stat.exists
-      retries: "{{ b_version }}"
+      loop: "{{ range(b_version|int, -1, -1) | list }}"
 
-      loop: "{{ range(b_version|int, 0, -1) | list }}"
-      when: (b_version | int) > 0
+    - set_fact:
+        backups: "{{ file_result.results | json_query('[?stat.exists].stat.path') }}"
+    
+    - fail:
+        msg: "No good builds found. Rollback failed"
+      when: (backups | length) == 0
 
-    - name: Fallback found
-      block:
+    - block:
         - debug:
-            msg: "File found fallback VERSION <{{ b_version }}>"
-        
-        - set_fact:
-            component_path: "/opt/semaphore_data/builds/elastic-component-v{{ b_version }}"
+            msg: "Found rollback: {{ new_path }}"
 
-        - name: 'Doing fallback: {{ component_path }}'
-          include_tasks: update.yaml
+        - name: "Update component_path for initializing backup process" 
+          set_fact:
+            component_path: "{{ new_path }}"
 
-      when: (b_version | int) > 0
+        - name: "Run update with correct templates"
+          include_tasks: "update.yaml"
 
-    - name: 'No fallback present'
-      fail:
-        msg: "No fallback found"
-      when: b_version == '0'
+      vars:
+        new_path: "{{ backups[0] | dirname }}"
 
+      when: (backups | length) > 0
 
   when: update_status != 0

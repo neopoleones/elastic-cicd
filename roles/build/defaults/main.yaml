@@ -5,7 +5,7 @@ semaphore_vars:
         type: build
         username: user123
         message: Some new build!
-        target_version: 0
+        target_version: 2
 
 components_repo: "https://github.com/neopoleones/elastic-component"
 elastic_test_host: 'https://security-soc-esk-test.el.wb.ru:9200'
