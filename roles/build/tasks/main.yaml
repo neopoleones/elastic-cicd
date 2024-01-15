@@ -65,7 +65,7 @@
       retries: "{{ b_version }}"
 
       loop: "{{ range(b_version|int, 0, -1) | list }}"
-      when: b_version > 0
+      when: (b_version | int) > 0
 
     - name: Fallback found
       block:
