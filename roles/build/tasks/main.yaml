@@ -1,10 +1,10 @@
+- name: 'Initalizing task with variables'
+  set_fact:
+    b_version: "{{ semaphore_vars.task_details.target_version | int }}"
+    component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.target_version }}"
+
 - name: 'Get source code and setup runner for work'
   block:
-    - name: 'Initalizing task with variables'
-      set_fact:
-        b_version: "{{ semaphore_vars.task_details.target_version | int }}"
-        component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.target_version }}"
-
     - name: 'Check if generic build directory exists'
       ansible.builtin.file:
         path: '/opt/semaphore_data/builds/'
@@ -31,13 +31,59 @@
 
 - name: 'Test components'
   block:
-    - name: 'Check if secret provided'
-      debug:
-        msg: '{{ elastic_user }} {{ elastic_password }}'
-  
     - name: 'Set elastic_test_host as curr_elastic_host'
       set_fact:
         curr_elastic_host: '{{ elastic_test_host  }}'
     
     - name: 'Check configuration on test host'
       include_tasks: update.yaml
+
+- block:
+    - debug:
+        msg: "Configs are OK"
+
+    - name: 'Mark build as good'
+      file:
+        path: "{{ component_path }}/.good_build"
+        state: touch
+      
+        modification_time: preserve
+        access_time: preserve
+
+  when: update_status == 0
+
+- name: 'Configs are bad. Doing rollback'
+  block:
+    - name: Check for file and decrement VERSION
+      vars:
+        fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
+      stat:
+        path: "{{ file_path }}"
+
+      register: file_result
+      until: file_result.stat.exists
+      retries: "{{ b_version }}"
+
+      loop: "{{ range(b_version|int, 0, -1) | list }}"
+      when: b_version > 0
+
+    - name: Fallback found
+      block:
+        - debug:
+            msg: "File found fallback VERSION <{{ b_version }}>"
+        
+        - set_fact:
+            component_path: "/opt/semaphore_data/builds/elastic-component-v{{ b_version }}"
+
+        - name: 'Doing fallback: {{ component_path }}'
+          include_tasks: update.yaml
+
+      when: (b_version | int) > 0
+
+    - name: 'No fallback present'
+      fail:
+        msg: "No fallback found"
+      when: b_version == '0'
+
+
+  when: update_status != 0
