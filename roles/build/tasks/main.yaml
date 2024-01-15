@@ -28,3 +28,10 @@
 
 - name: 'Make jsons (unpacked build)'
   include_tasks: make_jsons.yaml
+
+- name: 'Test components'
+  block:
+    - name: 'Check if secret provided'
+      debug:
+        msg: '{{ elastic_user }} {{ elastic_password }}'
+    

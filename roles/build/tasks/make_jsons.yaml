@@ -1,3 +1,9 @@
+# Saves components to <jsons> directory
+
+# Arguments:
+#   component_path: path to current version
+#   built_components: built components
+
 - block:
   - name: 'Create jsons directory: <v{{ b_version }}>'
     file:
@@ -15,3 +21,9 @@
       path: "{{ component_path }}/jsons/{{ item.key }}.json"
     with_dict: "{{ built_components }}"
     
+  - name: 'Copy ready jsons from components directory to jsons'
+    copy:
+      src: '{{ item }}'
+      dest: "{{ component_path }}/jsons/"
+
+    with_fileglob: "{{ component_path }}/components/*.json"
