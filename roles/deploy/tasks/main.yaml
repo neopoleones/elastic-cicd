@@ -1,7 +1,7 @@
 - name: 'Initalizing task with variables'
   set_fact:
-    b_version: "{{ semaphore_vars.task_details.target_version | int }}"
-    component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.target_version }}"
+    b_version: "{{ semaphore_vars.task_details.incoming_version | int }}"
+    component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.incoming_version }}"
 
 
 - name: Include update.yaml for each host
