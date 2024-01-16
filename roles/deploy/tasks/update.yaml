@@ -1,0 +1,34 @@
+# Updates components on target host
+# Arguments:
+#   component_path: path to current version
+#   curr_elastic_host: where to apply components
+#   elastic_user: str
+#   elastic_password: str
+#   
+# Returns:
+#   update_status: 0 - ok, >0 - fail 
+
+- block:
+  - name: 'Get built components'
+    ansible.builtin.find:
+      paths: "{{ component_path }}/jsons"
+      patterns: '*.json'
+    register: list
+
+  - name: 'Apply component in loop'
+    ansible.builtin.uri:
+      url: "{{ curr_elastic_host }}/_component_template/{{ curr_component }}"
+      validate_certs: False
+      src: "{{ item.path }}"
+      body_format: json
+      method: "PUT"
+
+      user: "{{ elastic_user }}"
+      password: "{{ elastic_password }}"
+      force_basic_auth: True
+    vars:
+      curr_component: "{{ item.path | basename | splitext | first }}"
+    
+    register: result    
+    ignore_errors: true
+    loop: "{{ list.files }}"
