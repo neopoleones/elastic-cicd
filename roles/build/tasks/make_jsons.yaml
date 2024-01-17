@@ -40,4 +40,4 @@
       src: '{{ item }}'
       dest: "{{ component_path }}/jsons/index_templates"
 
-    with_fileglob: "{{ component_path }}/components/*.json"
+    with_fileglob: "{{ component_path }}/index_templates/*.json"
