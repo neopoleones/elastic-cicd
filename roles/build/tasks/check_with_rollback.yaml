@@ -1,0 +1,62 @@
+# Check if build was successful. Try to apply rollback on fail. 
+#
+# arguments:
+#   update_status: (0 - good, >0 - fail)
+#   b_version: (base argument)
+#
+#  additional_constraints:
+#   **update_components_args
+
+- block:
+    - debug:
+        msg: "Configs are OK"
+
+    - name: 'Mark build as good'
+      file:
+        path: "{{ component_path }}/.good_build"
+        state: touch
+      
+        modification_time: preserve
+        access_time: preserve
+
+  when: update_status == 0
+
+- name: 'Configs are bad. Doing rollback'
+  block:
+    - name: Check for file and decrement b_version
+      vars:
+        fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
+      stat:
+        path: "{{ fp }}"
+
+      register: file_result
+      loop: "{{ range(b_version|int, -1, -1) | list }}"
+
+    - name: Set file found and version
+
+      set_fact:
+        file_found: "{{ item.stat.exists }}"
+        component_path: "{{ item.stat.path | dirname }}"
+
+      when: item.stat.exists
+      loop: "{{ file_result.results }}"
+
+    - set_fact:
+        file_found: "{{file_found | default(false) }}"
+
+    - fail:
+        msg: "No good builds found. Rollback failed"
+      when: not file_found
+
+    - block:
+        - debug:
+            msg: "Found rollback: {{ component_path }}"
+
+        - name: "Run update with correct templates"
+          include_tasks: "update_components.yaml"
+
+        - fail:
+            msg: "Build failed, but rollback was applied: <{{ component_path }}>"
+      when: file_found
+
+  when: update_status != 0

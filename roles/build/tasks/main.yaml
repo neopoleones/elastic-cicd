@@ -20,6 +20,7 @@
         repo: '{{ components_repo }}'
         dest: "{{ component_path }}"
 
+
 - name: 'Load settings and components'
   include_tasks: load.yaml
 
@@ -29,63 +30,14 @@
 - name: 'Make jsons (unpacked build)'
   include_tasks: make_jsons.yaml
 
-- name: 'Test components'
+- name: 'Test build (components part)'
   block:
     - name: 'Set elastic_test_host as curr_elastic_host'
       set_fact:
         curr_elastic_host: '{{ elastic_test_host  }}'
     
-    - name: 'Check configuration on test host'
-      include_tasks: update.yaml
+    - name: 'Check configuration on test host (template components)'
+      include_tasks: update_components.yaml
 
-- block:
-    - debug:
-        msg: "Configs are OK"
-
-    - name: 'Mark build as good'
-      file:
-        path: "{{ component_path }}/.good_build"
-        state: touch
-      
-        modification_time: preserve
-        access_time: preserve
-
-  when: update_status == 0
-
-- name: 'Configs are bad. Doing rollback'
-  block:
-    - name: Check for file and decrement b_version
-      vars:
-        fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
-      stat:
-        path: "{{ fp }}"
-
-      register: file_result
-      loop: "{{ range(b_version|int, -1, -1) | list }}"
-
-    - name: Set file found and version
-
-      set_fact:
-        file_found: "{{ item.stat.exists }}"
-        component_path: "{{ item.stat.path | dirname }}"
-
-      when: item.stat.exists
-      loop: "{{ file_result.results }}"
-
-    - set_fact:
-        file_found: "{{file_found | default(false) }}"
-
-    - fail:
-        msg: "No good builds found. Rollback failed"
-      when: not file_found
-
-    - block:
-        - debug:
-            msg: "Found rollback: {{ component_path }}"
-
-        - name: "Run update with correct templates"
-          include_tasks: "update.yaml"
-
-      when: file_found
-
-  when: update_status != 0
+    - name: 'Check status and apply rollback if need'
+      include_tasks: check_with_rollback.yaml
