@@ -33,21 +33,6 @@
     ignore_errors: true
     loop: "{{ list.files }}"
 
-  - name: 'Fallback option'
-    set_fact:
-      result:
-        results:
-          - status: 503
-    when: result is undefined
-  
-  - name: 'Check for errors'
-    set_fact:
-      status_codes: "{{ status_codes | default([]) + [sc | int ] }}"
-    vars:
-      sc: "{{ item.status }}"
+  - name: 'Enrich with update_status'
+    include_tasks: update_status.yaml
 
-    loop: "{{ result.results }}"
-
-  - name: 'Set status'
-    set_fact:
-      update_status: "{{ status_codes | reject('eq', 200) | list | length > 0 }}"

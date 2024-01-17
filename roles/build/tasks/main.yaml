@@ -41,3 +41,11 @@
 
     - name: 'Check status and apply rollback if need'
       include_tasks: check_with_rollback.yaml
+
+- name: 'Test build (index templates part)'
+  block:
+    - name: 'Check configuration on test host (index templates)'
+      include_tasks: update_index_templates.yaml
+
+    - name: 'Check status and apply rollback if need (^2)'
+      include_tasks: check_with_rollback.yaml

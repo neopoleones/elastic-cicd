@@ -52,8 +52,11 @@
         - debug:
             msg: "Found rollback: {{ component_path }}"
 
-        - name: "Run update with correct templates"
+        - name: "Run update with correct components"
           include_tasks: "update_components.yaml"
+
+        - name: "Run update with correct index templates"
+          include_tasks: "update_index_templates.yaml"
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"
