@@ -1,0 +1,23 @@
+# Updates components on target host
+# Arguments:
+#   result: requests' result array
+
+- block:
+  - name: 'Fallback option'
+    set_fact:
+      result:
+        results:
+          - status: 503
+    when: result is undefined
+  
+  - name: 'Check for errors'
+    set_fact:
+      status_codes: "{{ status_codes | default([]) + [sc | int ] }}"
+    vars:
+      sc: "{{ item.status }}"
+
+    loop: "{{ result.results }}"
+
+  - name: 'Set status'
+    set_fact:
+      update_status: "{{ status_codes | reject('eq', 200) | list | length > 0 }}"
