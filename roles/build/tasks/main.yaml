@@ -30,12 +30,12 @@
 - name: 'Make jsons (unpacked build)'
   include_tasks: make_jsons.yaml
 
+- name: 'Set elastic_test_host as curr_elastic_host'
+  set_fact:
+    curr_elastic_host: '{{ elastic_test_host  }}'
+
 - name: 'Test build (components part)'
   block:
-    - name: 'Set elastic_test_host as curr_elastic_host'
-      set_fact:
-        curr_elastic_host: '{{ elastic_test_host  }}'
-    
     - name: 'Check configuration on test host (template components)'
       include_tasks: update_components.yaml
 
