@@ -49,3 +49,11 @@
 
     - name: 'Check status and apply rollback if need (^2)'
       include_tasks: check_with_rollback.yaml
+
+- name: 'Mark build as good'
+  file:
+    path: "{{ component_path }}/.good_build"
+    state: touch
+  
+    modification_time: preserve
+    access_time: preserve

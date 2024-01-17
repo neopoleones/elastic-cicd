@@ -10,15 +10,6 @@
 - block:
     - debug:
         msg: "Configs are OK"
-
-    - name: 'Mark build as good'
-      file:
-        path: "{{ component_path }}/.good_build"
-        state: touch
-      
-        modification_time: preserve
-        access_time: preserve
-
   when: update_status == 0
 
 - name: 'Configs are bad. Doing rollback'
@@ -39,7 +30,7 @@
         component_path: "{{ item.stat.path | dirname }}"
 
       when: item.stat.exists
-      loop: "{{ file_result.results }}"
+      loop: "{{ file_result.results | reverse }}"
 
     - set_fact:
         file_found: "{{file_found | default(false) }}"
@@ -61,8 +52,6 @@
             updates:
               - "update_components.yaml"
               - "update_index_templates.yaml"
-
-        
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"
