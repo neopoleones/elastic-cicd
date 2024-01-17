@@ -5,17 +5,18 @@
 #   built_components: built components
 
 - block:
-  - name: 'Create jsons directory: <v{{ b_version }}>'
+  - name: 'Create build directories: <v{{ b_version }}>'
     file:
-      path: "{{ component_path }}/jsons"
+      path: "{{ item }}"
       state: directory
-
-  - file:
-      path: "{{ component_path }}/jsons/components"
-      state: directory
-  - file:
-      path: "{{ component_path }}/jsons/index_templates"
-      state: directory
+    
+    loop: "{{ paths }}"
+    vars:
+      paths:
+        - "{{ component_path }}/jsons"
+        - "{{ component_path }}/jsons/components"
+        - "{{ component_path }}/jsons/index_templates"
+        - "{{ component_path }}/jsons/ilm"
 
   - name: 'Move components enriched with settings to jsons'
     copy:
@@ -32,12 +33,16 @@
     copy:
       src: '{{ item }}'
       dest: "{{ component_path }}/jsons/components"
-
     with_fileglob: "{{ component_path }}/components/*.json"
 
   - name: 'Copy ready jsons from index templates directory to jsons (it)'
     copy:
       src: '{{ item }}'
       dest: "{{ component_path }}/jsons/index_templates"
-
     with_fileglob: "{{ component_path }}/index_templates/*.json"
+
+  - name: 'Copy ready jsons from index templates directory to jsons (it)'
+    copy:
+      src: '{{ item }}'
+      dest: "{{ component_path }}/jsons/ilm"
+    with_fileglob: "{{ component_path }}/ilm/*.json"
