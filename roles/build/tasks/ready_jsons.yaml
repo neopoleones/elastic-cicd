@@ -1,0 +1,10 @@
+# Copy ready jsons from components to build (if they don't need preprocessing)
+# Arguments:
+#   component_path
+#   folder: object(src: str, dest: str)
+
+- name: 'Copy ready jsons from components directory to jsons'
+  copy:
+    src: '{{ item }}'
+    dest: "{{ folder.dest }}"
+  with_fileglob: "{{ folder.src }}"

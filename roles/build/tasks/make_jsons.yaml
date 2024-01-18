@@ -17,7 +17,8 @@
         - "{{ component_path }}/jsons/components"
         - "{{ component_path }}/jsons/index_templates"
         - "{{ component_path }}/jsons/ilm"
-
+        - "{{ component_path }}/jsons/cluster_settings"
+        
   - name: 'Move components enriched with settings to jsons'
     copy:
       dest: "{{ path }}"
@@ -28,21 +29,24 @@
         template: "{{ item.value }}"
       path: "{{ component_path }}/jsons/components/{{ item.key }}.json"
     with_dict: "{{ built_components }}"
+
+  - name: 'Copy ready jsons from various components to build directory (jsons)'
+    include_tasks: ready_jsons.yaml
+
+    vars:
+      folders:
+        - src: "{{ component_path }}/components/*.json"
+          dest: "{{ component_path }}/jsons/components"
+
+        - src: "{{ component_path }}/index_templates/*.json"
+          dest: "{{ component_path }}/jsons/index_templates"
+
+        - src: "{{ component_path }}/ilm/*.json"
+          dest: "{{ component_path }}/jsons/ilm"
+
+        - src: "{{ component_path }}/cluster_settings/*.json"
+          dest: "{{ component_path }}/jsons/cluster_settings"
     
-  - name: 'Copy ready jsons from components directory to jsons (components)'
-    copy:
-      src: '{{ item }}'
-      dest: "{{ component_path }}/jsons/components"
-    with_fileglob: "{{ component_path }}/components/*.json"
-
-  - name: 'Copy ready jsons from index templates directory to jsons (it)'
-    copy:
-      src: '{{ item }}'
-      dest: "{{ component_path }}/jsons/index_templates"
-    with_fileglob: "{{ component_path }}/index_templates/*.json"
-
-  - name: 'Copy ready jsons from index templates directory to jsons (it)'
-    copy:
-      src: '{{ item }}'
-      dest: "{{ component_path }}/jsons/ilm"
-    with_fileglob: "{{ component_path }}/ilm/*.json"
+    loop: "{{ folders }}"
+    loop_control:
+      loop_var: folder
