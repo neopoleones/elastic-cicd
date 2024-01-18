@@ -33,6 +33,3 @@
     register: result    
     ignore_errors: true
     loop: "{{ list.files }}"
-
-  - name: 'Enrich with update_status'
-    include_tasks: update_status.yaml

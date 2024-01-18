@@ -52,6 +52,7 @@
             updates:
               - "update_components.yaml"
               - "update_index_templates.yaml"
+              - "update_ilm.yaml"
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"

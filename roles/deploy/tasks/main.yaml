@@ -19,3 +19,11 @@
   loop: "{{ elastic_hosts }}"
   loop_control:
     loop_var: c_h
+
+- name: Include update_ilm.yaml for each host
+  include_tasks: update_ilm.yaml
+  vars:
+    curr_elastic_host: "{{ c_h }}"
+  loop: "{{ elastic_hosts }}"
+  loop_control:
+    loop_var: c_h
