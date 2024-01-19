@@ -33,7 +33,7 @@
 - name: 'Set elastic_test_host as curr_elastic_host'
   set_fact:
     curr_elastic_host: '{{ elastic_test_host  }}'
-    
+
 - name: 'Test build'
   vars:
     tasks:
@@ -41,6 +41,8 @@
       - update_index_templates
       - update_ilm
       - update_cluster_settings
+      - update_index_settings
+      - update_index_mappings
 
   loop: "{{ tasks }}"
   loop_control:

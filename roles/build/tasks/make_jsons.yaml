@@ -17,7 +17,9 @@
         - "{{ component_path }}/jsons/components"
         - "{{ component_path }}/jsons/index_templates"
         - "{{ component_path }}/jsons/ilm"
+        - "{{ component_path }}/jsons/index_settings"
         - "{{ component_path }}/jsons/cluster_settings"
+        - "{{ component_path }}/jsons/index_mappings"
         
   - name: 'Move components enriched with settings to jsons'
     copy:
@@ -46,6 +48,12 @@
 
         - src: "{{ component_path }}/cluster_settings/*.json"
           dest: "{{ component_path }}/jsons/cluster_settings"
+        
+        - src: "{{ component_path }}/index_settings/*.json"
+          dest: "{{ component_path }}/jsons/index_settings"
+
+        - src: "{{ component_path }}/index_mappings/*.json"
+          dest: "{{ component_path }}/jsons/index_mappings"
     
     loop: "{{ folders }}"
     loop_control:
