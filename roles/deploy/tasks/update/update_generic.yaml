@@ -5,7 +5,6 @@
       - update_index_templates
       - update_ilm
       - update_cluster_settings
-  
   loop: "{{ tasks }}"
   loop_control:
     loop_var: task_name

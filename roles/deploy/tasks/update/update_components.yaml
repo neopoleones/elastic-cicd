@@ -11,7 +11,7 @@
 - block:
   - name: 'Get built components'
     ansible.builtin.find:
-      paths: "{{ component_path }}/jsons"
+      paths: "{{ component_path }}/jsons/components"
       patterns: '*.json'
     register: list
 
