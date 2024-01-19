@@ -1,0 +1,13 @@
+- name: 'Apply build on node'
+  vars:
+    tasks: 
+      - update_components
+      - update_index_templates
+      - update_ilm
+      - update_cluster_settings
+  
+  loop: "{{ tasks }}"
+  loop_control:
+    loop_var: task_name
+
+  include_tasks: "{{ task_name }}.yaml"

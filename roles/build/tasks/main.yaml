@@ -33,32 +33,22 @@
 - name: 'Set elastic_test_host as curr_elastic_host'
   set_fact:
     curr_elastic_host: '{{ elastic_test_host  }}'
+    
+- name: 'Test build'
+  vars:
+    tasks:
+      - update_components
+      - update_index_templates
+      - update_ilm
+      - update_cluster_settings
 
-- name: 'Test build (components part)'
-  block:
-    - name: 'Check configuration on test host (template components)'
-      include_tasks: update_components.yaml
+  loop: "{{ tasks }}"
+  loop_control:
+    loop_var: task_name
 
-    - name: 'Check status and apply rollback if need'
-      include_tasks: check_with_rollback.yaml
+  include_tasks: "update/update_generic.yaml"
 
-- name: 'Test build (index templates part)'
-  block:
-    - name: 'Check configuration on test host (index templates)'
-      include_tasks: update_index_templates.yaml
-
-    - name: 'Check status and apply rollback if need (^2)'
-      include_tasks: check_with_rollback.yaml
-
-- name: 'Test build (ilm part)'
-  block:
-    - name: 'Check configuration on test host (ilm)'
-      include_tasks: update_ilm.yaml
-
-    - name: 'Check status and apply rollback if need (^3)'
-      include_tasks: check_with_rollback.yaml
-
-- name: 'Mark build as good'
+- name: 'Mark build as good if not failed'
   file:
     path: "{{ component_path }}/.good_build"
     state: touch

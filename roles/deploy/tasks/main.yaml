@@ -3,27 +3,10 @@
     b_version: "{{ semaphore_vars.task_details.incoming_version | int }}"
     component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.incoming_version }}"
 
-
-- name: Include update_components.yaml for each host
-  include_tasks: update_components.yaml
-  vars:
-    curr_elastic_host: "{{ c_h }}"
+- name: "Apply build on each node"
   loop: "{{ elastic_hosts }}"
   loop_control:
-    loop_var: c_h
-
-- name: Include update_index_templates.yaml for each host
-  include_tasks: update_index_templates.yaml
+    loop_var: curr_host
   vars:
-    curr_elastic_host: "{{ c_h }}"
-  loop: "{{ elastic_hosts }}"
-  loop_control:
-    loop_var: c_h
-
-- name: Include update_ilm.yaml for each host
-  include_tasks: update_ilm.yaml
-  vars:
-    curr_elastic_host: "{{ c_h }}"
-  loop: "{{ elastic_hosts }}"
-  loop_control:
-    loop_var: c_h
+    curr_elastic_host: "{{ curr_host }}"  
+  include_tasks: "update/update_generic.yaml"

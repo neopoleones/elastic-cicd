@@ -50,9 +50,10 @@
 
           vars:
             updates:
-              - "update_components.yaml"
-              - "update_index_templates.yaml"
-              - "update_ilm.yaml"
+              - "update/update_components.yaml"
+              - "update/update_index_templates.yaml"
+              - "update/update_ilm.yaml"
+              - "update/update_cluster_settings.yaml"
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"

@@ -1,0 +1,9 @@
+# Arguments:
+#   task_name - which task to apply
+
+- block:
+    - name: 'Check configuration on test host'
+      include_tasks: "{{ task_name }}.yaml"
+
+    - name: 'Check status and apply rollback if need'
+      include_tasks: ../check_with_rollback.yaml
