@@ -3,8 +3,17 @@
 #   component_path
 #   folder: object(src: str, dest: str)
 
-- name: 'Copy ready jsons from components directory to jsons'
+- name: Find JSON files (with recurse)
+  find:
+    paths: "{{ component_path }}/{{ folder }}"
+    patterns: "*.json"
+    recurse: yes
+  register: json_files
+
+- name: Copy to target
   copy:
-    src: '{{ item }}'
-    dest: "{{ folder.dest }}"
-  with_fileglob: "{{ folder.src }}"
+    src: "{{ item.path }}"
+    dest: "{{ component_path }}/jsons/{{ folder }}/{{ item.path | basename }}"
+
+  loop: "{{ json_files.files }}"
+  when: json_files.matched > 0

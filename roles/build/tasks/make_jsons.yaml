@@ -26,23 +26,12 @@
 
     vars:
       folders:
-        - src: "{{ component_path }}/components/*.json"
-          dest: "{{ component_path }}/jsons/components"
-
-        - src: "{{ component_path }}/index_templates/*.json"
-          dest: "{{ component_path }}/jsons/index_templates"
-
-        - src: "{{ component_path }}/ilm/*.json"
-          dest: "{{ component_path }}/jsons/ilm"
-
-        - src: "{{ component_path }}/cluster_settings/*.json"
-          dest: "{{ component_path }}/jsons/cluster_settings"
-        
-        - src: "{{ component_path }}/index_settings/*.json"
-          dest: "{{ component_path }}/jsons/index_settings"
-
-        - src: "{{ component_path }}/index_mappings/*.json"
-          dest: "{{ component_path }}/jsons/index_mappings"
+        - "components"
+        - "index_templates"
+        - "ilm"
+        - "cluster_settings"        
+        - "index_settings"
+        - "index_mappings"
     
     loop: "{{ folders }}"
     loop_control:
