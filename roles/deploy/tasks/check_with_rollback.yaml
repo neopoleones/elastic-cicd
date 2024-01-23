@@ -1,0 +1,62 @@
+# Check if build was successful. Try to apply rollback on fail. 
+#
+# arguments:
+#   update_status: (0 - good, >0 - fail)
+#   b_version: (base argument)
+#
+#  additional_constraints:
+#   **update_components_args
+
+- block:
+    - debug:
+        msg: "Configs are OK"
+  when: update_status == 0
+
+- name: 'Configs are bad. Doing rollback'
+  block:
+    - name: Check for builds
+      set_fact:
+        all_versions: "{{ all_versions | default([]) + [fp] }}"
+      
+      vars:
+        fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
+
+      loop: "{{ range((b_version|int)-1, -1, -1) | list }}"
+
+    - name: Get latest good build
+      ansible.builtin.set_fact:
+        _ex_build: "{{ lookup('ansible.builtin.first_found', all_versions, errors='ignore') }}"
+
+    - fail:
+        msg: "No good builds found. Rollback failed"
+      when: _ex_build == ''
+
+    - block:
+        - set_fact:
+            component_path: "{{ _ex_build | dirname }}"
+  
+        - debug:
+            msg: "Found rollback: {{ component_path }}"
+
+        - name: "Run updates with good build"
+          
+          include_tasks: "{{ rescue_task }}"
+          loop: "{{ updates }}"
+          loop_control:
+            loop_var: rescue_task
+
+          vars:
+            is_rollback: true
+            updates:
+              - "update/update_components.yaml"
+              - "update/update_index_templates.yaml"
+              - "update/update_ilm.yaml"
+              - "update/update_cluster_settings.yaml"
+              - "update/update_index_settings.yaml"
+              - "update/update_index_mappings.yaml"
+
+        - fail:
+            msg: "Deploy failed, but rollback was applied: <{{ component_path }}>"
+      when: _ex_build != ''
+
+  when: update_status != 0

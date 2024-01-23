@@ -1,15 +1,9 @@
-- name: 'Apply build on node'
-  vars:
-    tasks: 
-      - update_components
-      - update_index_templates
-      - update_ilm
-      - update_cluster_settings
+- block:
+  - set_fact:
+      is_rollback: false
+  - include_tasks: "{{ curr_task }}.yaml"
 
-      - update_index_mappings
-      - update_index_settings
-  loop: "{{ tasks }}"
-  loop_control:
-    loop_var: task_name
+  # Check status, rollback if bad
 
-  include_tasks: "{{ task_name }}.yaml"
+  - name: 'Check status and apply rollback if need'
+    include_tasks: ../check_with_rollback.yaml

@@ -5,9 +5,12 @@
       patterns: '*.json'
     register: list
 
+  - set_fact:
+      ise_content: "{{ [] }}"
+
   - name: 'Get content of index settings'
     set_fact:
-      ise_content: "{{ ise_content | default([]) + [ise_obj]}}"
+      ise_content: "{{ ise_content + [ise_obj]}}"
 
     loop: "{{ list.files }}"
     loop_control:
@@ -38,3 +41,7 @@
     loop: "{{ ise_content }}"
     loop_control:
       loop_var: ise
+
+  - name: 'Enrich with update_status'
+    include_tasks: update_status.yaml
+    when: not is_rollback

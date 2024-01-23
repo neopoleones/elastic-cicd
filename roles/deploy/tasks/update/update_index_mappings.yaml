@@ -5,9 +5,12 @@
       patterns: '*.json'
     register: list
 
+  - set_fact:
+      ima_content: "{{ [] }}"
+
   - name: 'Get content of index mappings'
     set_fact:
-      ima_content: "{{ ima_content | default([]) + [ima_obj]}}"
+      ima_content: "{{ ima_content + [ima_obj]}}"
 
     loop: "{{ list.files }}"
     loop_control:
@@ -38,3 +41,7 @@
     loop: "{{ ima_content }}"
     loop_control:
       loop_var: ima
+
+  - name: 'Enrich with update_status'
+    include_tasks: update_status.yaml
+    when: not is_rollback

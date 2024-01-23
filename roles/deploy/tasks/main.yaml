@@ -9,4 +9,4 @@
     loop_var: curr_host
   vars:
     curr_elastic_host: "{{ curr_host }}"  
-  include_tasks: "update/update_generic.yaml"
+  include_tasks: "update/update_loop.yaml"
