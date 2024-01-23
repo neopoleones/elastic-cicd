@@ -1,0 +1,12 @@
+- name: Set _found_file to the first existing file, or an empty list if no files found
+  ansible.builtin.set_fact:
+    file: "{{ lookup('ansible.builtin.first_found', files, paths=['/extra/path'], errors='ignore') }}"
+  vars:
+    files:
+      - /path/to/foo.txt
+      - /etc/hosts
+      - /etc/shadow
+  
+- name: Show the _found_title
+  debug:
+    msg: "{{ _found_file }}"

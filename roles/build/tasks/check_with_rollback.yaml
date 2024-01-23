@@ -14,34 +14,33 @@
 
 - name: 'Configs are bad. Doing rollback'
   block:
-    - name: Check for file and decrement b_version
+    - name: Check for builds
+      set_fact:
+        all_versions: "{{ all_versions | default([]) + [fp] }}"
+      
       vars:
         fp: "/opt/semaphore_data/builds/elastic-component-v{{ item }}/.good_build"
-      stat:
-        path: "{{ fp }}"
 
-      register: file_result
       loop: "{{ range(b_version|int, -1, -1) | list }}"
 
-    - name: Set file found and version
+    - name: Get latest good build
+      ansible.builtin.set_fact:
+        _ex_build: "{{ lookup('ansible.builtin.first_found', all_versions, errors='ignore') }}"
 
-      set_fact:
-        file_found: "{{ item.stat.exists }}"
-        component_path: "{{ item.stat.path | dirname }}"
-
-      when: item.stat.exists
-      loop: "{{ file_result.results | reverse }}"
-
-    - set_fact:
-        file_found: "{{file_found | default(false) }}"
+    - name: Show path
+      debug:
+        msg: "{{ _ex_build }}"
 
     - fail:
         msg: "No good builds found. Rollback failed"
-      when: not file_found
+      when: _ex_build == ''
 
     - block:
         - debug:
-            msg: "Found rollback: {{ component_path }}"
+            msg: "Found rollback: {{ _ex_build }}"
+
+        - set_fact:
+            component_path: "{{ _ex_build }}"
 
         - name: "Run updates with good build"
           
@@ -54,9 +53,12 @@
               - "update/update_index_templates.yaml"
               - "update/update_ilm.yaml"
               - "update/update_cluster_settings.yaml"
+              - "update/update_index_settings.yaml"
+              - "update/update_index_mappings.yaml"
+
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"
-      when: file_found
+      when: _ex_build != ''
 
   when: update_status != 0

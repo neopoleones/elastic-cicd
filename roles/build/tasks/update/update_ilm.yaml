@@ -9,6 +9,8 @@
 # Returns:
 #   update_status: 0 - ok, >0 - fail 
 
+
+# TODO: git diff HEAD^ HEAD
 - block:
   - name: 'Get built ilm components'
     ansible.builtin.find:
