@@ -8,6 +8,7 @@
       result:
         results:
           - status: 503
+      skipped: False
     when: result is undefined
   
   - name: 'Check for errors'
@@ -17,6 +18,12 @@
       sc: "{{ item.status }}"
 
     loop: "{{ result.results }}"
+    when: not result.skipped
+
+  - name: 'If no components applied'
+    set_fact:
+      status_codes: "{{ [200] }}"
+    when: result.skipped
 
   - name: 'Set status'
     set_fact:

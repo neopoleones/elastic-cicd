@@ -1,3 +1,13 @@
+# Updates cluster settings on target host
+# Arguments:
+#   component_path: path to current version
+#   curr_elastic_host: where to apply components
+#   elastic_user: str
+#   elastic_password: str
+#   
+# Returns:
+#   update_status: 0 - ok, >0 - fail 
+
 - block:
   - name: 'Get cluster settings'
     ansible.builtin.find:
@@ -5,23 +15,24 @@
       patterns: '*.json'
     register: list
 
+  - name: 'Filter unchanged components'
+    include_tasks: filter_components.yaml
+
   - name: 'Apply all settings in loop'
     ansible.builtin.uri:
       url: "{{ curr_elastic_host }}/_cluster/settings"
       validate_certs: False
-      src: "{{ item.path }}"
+      src: "{{ item }}"
       body_format: json
       method: "PUT"
 
       user: "{{ elastic_user }}"
       password: "{{ elastic_password }}"
       force_basic_auth: True
-    vars:
-      curr_component: "{{ item.path | basename | splitext | first }}"
-    
+      
     register: result    
     ignore_errors: true
-    loop: "{{ list.files }}"
+    loop: "{{ prepared_list }}"
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

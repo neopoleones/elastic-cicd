@@ -20,17 +20,6 @@
         - "{{ component_path }}/jsons/index_settings"
         - "{{ component_path }}/jsons/cluster_settings"
         - "{{ component_path }}/jsons/index_mappings"
-        
-  - name: 'Move components enriched with settings to jsons'
-    copy:
-      dest: "{{ path }}"
-      content: "{{ nested | to_json }}"
-
-    vars:
-      nested:
-        template: "{{ item.value }}"
-      path: "{{ component_path }}/jsons/components/{{ item.key }}.json"
-    with_dict: "{{ built_components }}"
 
   - name: 'Copy ready jsons from various components to build directory (jsons)'
     include_tasks: ready_jsons.yaml

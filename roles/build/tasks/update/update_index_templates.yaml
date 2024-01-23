@@ -15,11 +15,14 @@
       patterns: '*.json'
     register: list
 
+  - name: 'Filter unchanged components'
+    include_tasks: filter_components.yaml
+
   - name: 'Apply component in loop'
     ansible.builtin.uri:
       url: "{{ curr_elastic_host }}/_index_template/{{ curr_template }}"
       validate_certs: False
-      src: "{{ item.path }}"
+      src: "{{ item }}"
       body_format: json
       method: "PUT"
 
@@ -27,11 +30,11 @@
       password: "{{ elastic_password }}"
       force_basic_auth: True
     vars:
-      curr_template: "{{ item.path | basename | splitext | first }}"
+      curr_template: "{{ item | basename | splitext | first }}"
     
     register: result    
     ignore_errors: true
-    loop: "{{ list.files }}"
+    loop: "{{ prepared_list }}"
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

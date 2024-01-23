@@ -1,0 +1,24 @@
+# Filters list of filt paths by changed criteria using the mask
+
+# Arguments:
+#   staging_components: dict(str: bool)
+#   list: dict(files: [File: path])
+# Sets:
+#   prepared_list: [str] - paths of files that were changed 
+
+- block:
+  - set_fact:
+      prepared_list: "{{ [] }}"
+
+  - set_fact:
+      prepared_list: "{{ prepared_list + [_cpa_path] }}"
+    
+    vars:
+      _cpa_path: "{{ _cpa.path }}"
+
+    loop: "{{ list.files }}"
+    loop_control:
+      loop_var: _cpa
+
+    when: "(_cpa_path | basename) in staging_components"
+  

@@ -10,7 +10,6 @@
 #   update_status: 0 - ok, >0 - fail 
 
 
-# TODO: git diff HEAD^ HEAD
 - block:
   - name: 'Get built ilm components'
     ansible.builtin.find:
@@ -18,11 +17,14 @@
       patterns: '*.json'
     register: list
 
+  - name: 'Filter unchanged components'
+    include_tasks: filter_components.yaml
+
   - name: 'Apply ilm in loop'
     ansible.builtin.uri:
       url: "{{ curr_elastic_host }}/_ilm/policy/{{ curr_ilm }}"
       validate_certs: False
-      src: "{{ item.path }}"
+      src: "{{ item }}"
       body_format: json
       method: "PUT"
 
@@ -30,11 +32,11 @@
       password: "{{ elastic_password }}"
       force_basic_auth: True
     vars:
-      curr_ilm: "{{ item.path | basename | splitext | first }}"
+      curr_ilm: "{{ item | basename | splitext | first }}"
     
     register: result    
     ignore_errors: true
-    loop: "{{ list.files }}"
+    loop: "{{ prepared_list }}"
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

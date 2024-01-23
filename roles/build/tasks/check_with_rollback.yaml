@@ -56,7 +56,6 @@
               - "update/update_index_settings.yaml"
               - "update/update_index_mappings.yaml"
 
-
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"
       when: _ex_build != ''

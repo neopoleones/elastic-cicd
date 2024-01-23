@@ -1,12 +1,51 @@
-- name: Set _found_file to the first existing file, or an empty list if no files found
-  ansible.builtin.set_fact:
-    file: "{{ lookup('ansible.builtin.first_found', files, paths=['/extra/path'], errors='ignore') }}"
-  vars:
-    files:
-      - /path/to/foo.txt
-      - /etc/hosts
-      - /etc/shadow
+- name: 'Initalizing task with variables'
+  set_fact:
+    b_version: "{{ semaphore_vars.task_details.target_version | int }}"
+    component_path: "/opt/semaphore_data/builds/elastic-component-v{{ semaphore_vars.task_details.target_version }}"
+
+- name: 'Get source code and setup runner for work'
+  block:
+    - name: 'Check if generic build directory exists'
+      ansible.builtin.file:
+        path: '/opt/semaphore_data/builds/'
+        state: directory
+
+    - name: 'Delete if component directory exists: <v{{ b_version }}>'
+      ansible.builtin.file:
+        path: "{{ component_path }}"
+        state: absent
+
+    - name: 'Clone the elastic-component settigns: <v{{ b_version }}>'
+      ansible.builtin.git:
+        repo: '{{ components_repo }}'
+        dest: "{{ component_path }}"
+
+
+# update_name: components
+- name: "Get components that were changed"
+  block:
+  - command: 
+      cmd: "git diff --name-only 'HEAD^' HEAD"
+      chdir: "{{ component_path }}"
+    register: diff_data
+
+  - set_fact:
+      changed_components: "{{ diff_data.stdout | split('\n') }}"
   
-- name: Show the _found_title
-  debug:
-    msg: "{{ _found_file }}"
+  - debug:
+      msg: 'Changed files: {{ changed_components }}'
+
+  - set_fact:
+      curr_comp: "components"
+
+  - name: "Create mask dict"
+    vars:
+      _staging_components: "{{ changed_components | map('basename') }}"
+    set_fact:
+      staging_components: "{{ (staging_components | default({})) | combine({_curr_comp: true}) }}"
+    loop: "{{ _staging_components }}"
+    loop_control:
+      loop_var: _curr_comp
+
+  - debug:
+      msg: "{{ staging_components }}"
