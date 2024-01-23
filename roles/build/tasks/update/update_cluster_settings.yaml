@@ -29,10 +29,11 @@
       user: "{{ elastic_user }}"
       password: "{{ elastic_password }}"
       force_basic_auth: True
-      
+
     register: result    
     ignore_errors: true
     loop: "{{ prepared_list }}"
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml
+    when: not is_rollback

@@ -27,20 +27,16 @@
       ansible.builtin.set_fact:
         _ex_build: "{{ lookup('ansible.builtin.first_found', all_versions, errors='ignore') }}"
 
-    - name: Show path
-      debug:
-        msg: "{{ _ex_build }}"
-
     - fail:
         msg: "No good builds found. Rollback failed"
       when: _ex_build == ''
 
     - block:
-        - debug:
-            msg: "Found rollback: {{ _ex_build }}"
-
         - set_fact:
-            component_path: "{{ _ex_build }}"
+            component_path: "{{ _ex_build | dirname }}"
+  
+        - debug:
+            msg: "Found rollback: {{ component_path }}"
 
         - name: "Run updates with good build"
           
@@ -48,6 +44,7 @@
           loop: "{{ updates }}"
 
           vars:
+            is_rollback: true
             updates:
               - "update/update_components.yaml"
               - "update/update_index_templates.yaml"

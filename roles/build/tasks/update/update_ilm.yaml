@@ -40,3 +40,4 @@
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml
+    when: not is_rollback

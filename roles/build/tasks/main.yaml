@@ -59,6 +59,7 @@
       - update_cluster_settings
       - update_index_settings
       - update_index_mappings
+    is_rollback: false
 
   loop: "{{ tasks }}"
   loop_control:
