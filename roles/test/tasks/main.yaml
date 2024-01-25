@@ -20,32 +20,3 @@
         repo: '{{ components_repo }}'
         dest: "{{ component_path }}"
 
-
-# update_name: components
-- name: "Get components that were changed"
-  block:
-  - command: 
-      cmd: "git diff --name-only 'HEAD^' HEAD"
-      chdir: "{{ component_path }}"
-    register: diff_data
-
-  - set_fact:
-      changed_components: "{{ diff_data.stdout | split('\n') }}"
-  
-  - debug:
-      msg: 'Changed files: {{ changed_components }}'
-
-  - set_fact:
-      curr_comp: "components"
-
-  - name: "Create mask dict"
-    vars:
-      _staging_components: "{{ changed_components | map('basename') }}"
-    set_fact:
-      staging_components: "{{ (staging_components | default({})) | combine({_curr_comp: true}) }}"
-    loop: "{{ _staging_components }}"
-    loop_control:
-      loop_var: _curr_comp
-
-  - debug:
-      msg: "{{ staging_components }}"

@@ -32,7 +32,7 @@
   
   - name: "Create mask dict"
     vars:
-      _staging_components: "{{ changed_components | map('basename') }}"
+      _staging_components: "{{ changed_components }}"
     set_fact:
       staging_components: "{{ (staging_components | default({})) | combine({_curr_comp: true}) }}"
     loop: "{{ _staging_components }}"
@@ -53,12 +53,15 @@
 - name: 'Test build'
   vars:
     tasks:
-      - update_components
-      - update_index_templates
-      - update_ilm
-      - update_cluster_settings
+ #     - update_components
+ #     - update_index_templates
+
+      # TODO: в топку, переделать
       - update_index_settings
-      - update_index_mappings
+ #     - update_index_mappings
+
+ #     - update_ilm
+ #     - update_cluster_settings
     is_rollback: false
 
   loop: "{{ tasks }}"
@@ -74,3 +77,6 @@
   
     modification_time: preserve
     access_time: preserve
+
+# TODO:
+# app role чтение на все, security space vault для сервера семафор

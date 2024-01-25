@@ -50,8 +50,8 @@
               - "update/update_index_templates.yaml"
               - "update/update_ilm.yaml"
               - "update/update_cluster_settings.yaml"
-              - "update/update_index_settings.yaml"
-              - "update/update_index_mappings.yaml"
+
+              # todo: add here options
 
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"

@@ -9,51 +9,81 @@
 #   update_status: 0 - ok, >0 - fail 
 
 - block:
-  - name: 'Get built index settings paths' # (dict(target, settings))
-    ansible.builtin.find:
-      paths: "{{ component_path }}/jsons/index_settings"
-      patterns: '*.json'
-    register: list
+  - block:
+    - name: 'Get built index settings paths' # (dict(target, settings))
+      ansible.builtin.find:
+        paths: "{{ component_path }}/index"
+        file_type: directory
+        recurse: False
+      register: list
+      
+    - find:
+        paths: "{{ ipa.path }}/settings"
+        patterns: '*.json'
+      register: all_settings
 
-  - name: 'Filter unchanged components'
-    include_tasks: filter_components.yaml
+      loop: "{{ list.files }}"
+      loop_control:
+        loop_var: ipa 
+      no_log: True
 
-  - set_fact:
-      ise_content: "{{ [] }}"
+    - set_fact:
+        flatten_settings: "{{ flatten_settings|default([]) + [curr_index_settings.files] }}"
+      loop: "{{ all_settings.results }}"
+      loop_control:
+        loop_var: curr_index_settings
+      no_log: True
 
-  - name: 'Get content of index settings'
-    set_fact:
-      ise_content: "{{ ise_content + [ise_obj]}}"
-
-    loop: "{{ prepared_list }}"
-    loop_control:
-      loop_var: curr_file
-    vars:
-      ise_obj: "{{ lookup('ansible.builtin.file', curr_file) | from_json }}"
-
-  - name: 'Apply component in loop'
-    ansible.builtin.uri:
-      url: "{{ curr_elastic_host }}/{{ ise_target }}/_settings"
+  # Create indexes if need
+  - uri:
+      url: "{{ curr_elastic_host }}/{{ index_name }}"
       validate_certs: False
+      
+      method: "PUT"
 
-      body: "{{ ise_data }}"
+      user: "{{ elastic_user }}"
+      password: "{{ elastic_password }}"
+      force_basic_auth: True 
+
+    register: result
+    ignore_errors: true
+
+    vars:
+      index_name: "{{ (cis.path | replace(component_path, '') | split('/'))[2] }}"
+      rel_path: "{{ cis.path | replace(component_path + '/', '') }}"
+
+    loop: "{{ flatten_settings | flatten }}"
+    loop_control:
+      loop_var: cis
+    
+    when: rel_path in staging_components
+  
+  # Set settings
+  - uri:
+      url: "{{ curr_elastic_host }}/{{ index_name }}/_settings"
+      validate_certs: False
+      
+      src: "{{ full_path }}"
       body_format: json
       method: "PUT"
 
       user: "{{ elastic_user }}"
       password: "{{ elastic_password }}"
-      force_basic_auth: True
-  
-    vars:
-      ise_data: "{{ ise.settings | to_json }}"
-      ise_target: "{{ ise.target }}"
-    
+      force_basic_auth: True 
+
     register: result
     ignore_errors: true
 
-    loop: "{{ ise_content }}"
+    vars:
+      index_name: "{{ (cis.path | replace(component_path, '') | split('/'))[2] }}"
+      rel_path: "{{ cis.path | replace(component_path + '/', '') }}"
+      full_path: "{{ cis.path }}"
+
+    loop: "{{ flatten_settings | flatten }}"
     loop_control:
-      loop_var: ise
+      loop_var: cis
+    
+    when: rel_path in staging_components
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

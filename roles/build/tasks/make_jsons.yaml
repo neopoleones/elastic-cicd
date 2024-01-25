@@ -5,7 +5,7 @@
 #   built_components: built components
 
 - block:
-  - name: 'Create build directories: <v{{ b_version }}>'
+  - name: 'Create base build directories: <v{{ b_version }}>'
     file:
       path: "{{ item }}"
       state: directory
@@ -17,10 +17,8 @@
         - "{{ component_path }}/jsons/components"
         - "{{ component_path }}/jsons/index_templates"
         - "{{ component_path }}/jsons/ilm"
-        - "{{ component_path }}/jsons/index_settings"
         - "{{ component_path }}/jsons/cluster_settings"
-        - "{{ component_path }}/jsons/index_mappings"
-
+        - "{{ component_path }}/jsons/index"
   - name: 'Copy ready jsons from various components to build directory (jsons)'
     include_tasks: ready_jsons.yaml
 
@@ -29,10 +27,15 @@
         - "components"
         - "index_templates"
         - "ilm"
-        - "cluster_settings"        
-        - "index_settings"
-        - "index_mappings"
-    
+        - "cluster_settings"
+
     loop: "{{ folders }}"
     loop_control:
       loop_var: folder
+  
+  # TODO: add template engine in future updates
+
+  - name: 'Copy index structures'
+    command: "cp -r {{ component_path }}/index {{ component_path }}/jsons/index"
+
+  

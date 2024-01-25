@@ -2,11 +2,17 @@
 
 # Arguments:
 #   staging_components: dict(str: bool)
+#   component_path: (str)
 #   list: dict(files: [File: path])
 # Sets:
 #   prepared_list: [str] - paths of files that were changed 
 
 - block:
+  - debug:
+      msg:
+        msg1: "HERE: {{list.files}}"
+        msg2: "HERE2: {{component_path}}"
+
   - set_fact:
       prepared_list: "{{ [] }}"
 
@@ -21,4 +27,3 @@
       loop_var: _cpa
 
     when: "(_cpa_path | basename) in staging_components"
-  

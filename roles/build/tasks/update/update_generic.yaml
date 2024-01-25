@@ -5,5 +5,8 @@
     - name: 'Check configuration on test host'
       include_tasks: "{{ task_name }}.yaml"
 
+    - name: "Check cluster's health status"
+      include_tasks: "../check_health.yaml"
+
     - name: 'Check status and apply rollback if need'
       include_tasks: ../check_with_rollback.yaml
