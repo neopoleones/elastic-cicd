@@ -53,15 +53,15 @@
 - name: 'Test build'
   vars:
     tasks:
- #     - update_components
- #     - update_index_templates
+      - update_components
+      - update_index_templates
 
-      # TODO: в топку, переделать
+      - create_indices
       - update_index_settings
- #     - update_index_mappings
+      - update_index_mappings
 
- #     - update_ilm
- #     - update_cluster_settings
+      - update_ilm
+      - update_cluster_settings
     is_rollback: false
 
   loop: "{{ tasks }}"

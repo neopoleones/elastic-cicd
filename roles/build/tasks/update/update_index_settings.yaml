@@ -17,7 +17,8 @@
         recurse: False
       register: list
       
-    - find:
+    - name: 'Search for json files in indices'
+      find:
         paths: "{{ ipa.path }}/settings"
         patterns: '*.json'
       register: all_settings
@@ -27,39 +28,19 @@
         loop_var: ipa 
       no_log: True
 
-    - set_fact:
-        flatten_settings: "{{ flatten_settings|default([]) + [curr_index_settings.files] }}"
+    - ansible.builtin.set_fact:
+        flatten_settings: []
+    
+    - name: 'Prepare the assets list'
+      set_fact:
+        flatten_settings: "{{ flatten_settings + [curr_index_settings.files] }}"
       loop: "{{ all_settings.results }}"
       loop_control:
         loop_var: curr_index_settings
       no_log: True
-
-  # Create indexes if need
-  - uri:
-      url: "{{ curr_elastic_host }}/{{ index_name }}"
-      validate_certs: False
-      
-      method: "PUT"
-
-      user: "{{ elastic_user }}"
-      password: "{{ elastic_password }}"
-      force_basic_auth: True 
-
-    register: result
-    ignore_errors: true
-
-    vars:
-      index_name: "{{ (cis.path | replace(component_path, '') | split('/'))[2] }}"
-      rel_path: "{{ cis.path | replace(component_path + '/', '') }}"
-
-    loop: "{{ flatten_settings | flatten }}"
-    loop_control:
-      loop_var: cis
-    
-    when: rel_path in staging_components
   
-  # Set settings
-  - uri:
+  - name: "Apply indices settings"
+    uri:
       url: "{{ curr_elastic_host }}/{{ index_name }}/_settings"
       validate_certs: False
       
@@ -71,7 +52,7 @@
       password: "{{ elastic_password }}"
       force_basic_auth: True 
 
-    register: result
+    register: tmp_result
     ignore_errors: true
 
     vars:
@@ -84,6 +65,25 @@
       loop_var: cis
     
     when: rel_path in staging_components
+
+  - set_fact:
+      result:
+        results: []
+    no_log: True
+    
+  - name: 'Filter non used assets'
+    set_fact:
+      result:
+        results: "{{ result.results + [lv] }}"
+    loop: "{{tmp_result.results}}"
+    loop_control:
+      loop_var: lv 
+    when: not 'skipped' in lv
+
+  - name: 'Add no skipped property'
+    set_fact:
+      result: '{{ result | combine({"skipped": false}, recursive=True) }}'
+    no_log: True
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

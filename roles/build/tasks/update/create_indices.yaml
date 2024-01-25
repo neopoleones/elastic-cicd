@@ -1,0 +1,51 @@
+- block:
+  - block:
+    - name: 'Get built index settings paths' # (dict(target, settings))
+      ansible.builtin.find:
+        paths: "{{ component_path }}/index"
+        file_type: directory
+        recurse: False
+      register: list
+      
+    - find:
+        paths: "{{ ipa.path }}/settings"
+        patterns: '*.json'
+      register: all_settings
+
+      loop: "{{ list.files }}"
+      loop_control:
+        loop_var: ipa 
+      no_log: True
+
+    - set_fact:
+        flatten_settings: "{{ flatten_settings|default([]) + [curr_index_settings.files] }}"
+      loop: "{{ all_settings.results }}"
+      loop_control:
+        loop_var: curr_index_settings
+      no_log: True
+  
+  - name: "Ensure indices exist"
+    uri:
+      url: "{{ curr_elastic_host }}/{{ index_name }}"
+      validate_certs: False
+      method: "PUT"
+
+      user: "{{ elastic_user }}"
+      password: "{{ elastic_password }}"
+      force_basic_auth: True 
+      status_code: [200, 400]
+
+    ignore_errors: true
+
+    vars:
+      index_name: "{{ (cis.path | replace(component_path, '') | split('/'))[2] }}"
+      rel_path: "{{ cis.path | replace(component_path + '/', '') }}"
+
+    loop: "{{ flatten_settings | flatten }}"
+    loop_control:
+      loop_var: cis
+    
+    when: rel_path in staging_components
+  
+  - set_fact:
+      update_status: 0

@@ -19,6 +19,7 @@
 
     loop: "{{ result.results }}"
     when: not result.skipped
+    no_log: True
 
   - name: 'If no components applied'
     set_fact:
