@@ -59,6 +59,7 @@
       - create_indices
       - update_index_settings
       - update_index_mappings
+      - update_index_aliases
 
       - update_ilm
       - update_cluster_settings

@@ -21,4 +21,4 @@
     loop_control:
       loop_var: _cpa
 
-    when: "(_cpa_path | basename) in staging_components"
+    when: "(_cpa_path | replace(component_path+'/jsons/', '')) in staging_components"
