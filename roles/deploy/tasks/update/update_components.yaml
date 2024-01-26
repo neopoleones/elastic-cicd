@@ -4,7 +4,7 @@
 #   curr_elastic_host: where to apply components
 #   elastic_user: str
 #   elastic_password: str
-#   
+#
 # Returns:
 #   update_status: 0 - ok, >0 - fail 
 

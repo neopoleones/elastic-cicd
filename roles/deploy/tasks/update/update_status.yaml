@@ -18,6 +18,13 @@
       sc: "{{ item.status }}"
 
     loop: "{{ result.results }}"
+    when: not result.skipped
+    no_log: True
+
+  - name: 'If no components applied'
+    set_fact:
+      status_codes: "{{ [200] }}"
+    when: result.skipped
 
   - name: 'Set status'
     set_fact:

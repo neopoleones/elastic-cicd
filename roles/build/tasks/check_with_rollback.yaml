@@ -46,13 +46,17 @@
           vars:
             is_rollback: true
             updates:
+              - "update/create_indices.yaml"
+              - "update/update_index_aliases.yaml"
+
               - "update/update_components.yaml"
-              - "update/update_index_templates.yaml"
               - "update/update_ilm.yaml"
+              - "update/update_index_templates.yaml"
+
+              - "update/update_index_settings.yaml"
+              - "update/update_index_mappings.yaml"
+
               - "update/update_cluster_settings.yaml"
-
-              # todo: add here options
-
         - fail:
             msg: "Build failed, but rollback was applied: <{{ component_path }}>"
       when: _ex_build != ''

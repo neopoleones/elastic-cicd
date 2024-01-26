@@ -1,46 +1,87 @@
+# Updates index mappings on target host
+# Arguments:
+#   component_path: path to current version
+#   curr_elastic_host: where to apply components
+#   elastic_user: str
+#   elastic_password: str
+#   
+# Returns:
+#   update_status: 0 - ok, >0 - fail 
 - block:
-  - name: 'Get built index mappings paths' # (dict(target, settings))
-    ansible.builtin.find:
-      paths: "{{ component_path }}/jsons/index_mappings"
-      patterns: '*.json'
-    register: list
+  - block:
+    - name: 'Get built index mappings paths' # (dict(target, settings))
+      ansible.builtin.find:
+        paths: "{{ component_path }}/index"
+        file_type: directory
+        recurse: False
+      register: list
+      
+    - name: 'Search for json files in indices'
+      find:
+        paths: "{{ ipa.path }}/mappings"
+        patterns: '*.json'
+      register: all_mappings
 
-  - set_fact:
-      ima_content: "{{ [] }}"
+      loop: "{{ list.files }}"
+      loop_control:
+        loop_var: ipa 
+      no_log: True
 
-  - name: 'Get content of index mappings'
-    set_fact:
-      ima_content: "{{ ima_content + [ima_obj]}}"
+    - ansible.builtin.set_fact:
+        flatten_settings: []
 
-    loop: "{{ list.files }}"
-    loop_control:
-      loop_var: curr_file
-    vars:
-      ima_obj: "{{ lookup('ansible.builtin.file', curr_file.path) | from_json }}"
+    - name: 'Prepare the assets list'
+      set_fact:
+        flatten_settings: "{{ flatten_settings + [curr_index_mp.files] }}"
+      loop: "{{ all_mappings.results }}"
+      loop_control:
+        loop_var: curr_index_mp
+      no_log: True
 
-  - name: 'Apply component in loop'
-    ansible.builtin.uri:
-      url: "{{ curr_elastic_host }}/{{ ima_target }}/_mapping"
+  - name: "Apply indices mappings"
+    uri:
+      url: "{{ curr_elastic_host }}/{{ index_name }}/_mapping"
       validate_certs: False
-
-      body: "{{ ima_data }}"
+      
+      src: "{{ full_path }}"
       body_format: json
       method: "PUT"
 
       user: "{{ elastic_user }}"
       password: "{{ elastic_password }}"
-      force_basic_auth: True
-  
-    vars:
-      ima_data: "{{ ima.settings | to_json }}"
-      ima_target: "{{ ima.target }}"
-    
-    register: result
+      force_basic_auth: True 
+
+    register: tmp_result
     ignore_errors: true
 
-    loop: "{{ ima_content }}"
+    vars:
+      index_name: "{{ (cis.path | replace(component_path, '') | split('/'))[2] }}"
+      rel_path: "{{ cis.path | replace(component_path + '/', '') }}"
+      full_path: "{{ cis.path }}"
+
+    loop: "{{ flatten_settings | flatten }}"
     loop_control:
-      loop_var: ima
+      loop_var: cis
+    
+  - set_fact:
+      result:
+        results: []
+    no_log: True
+    
+  - name: 'Filter non used assets'
+    set_fact:
+      result:
+        results: "{{ result.results + [lv] }}"
+    loop: "{{tmp_result.results}}"
+    loop_control:
+      loop_var: lv 
+    when: not 'skipped' in lv
+    no_log: True
+
+  - name: 'Add no skipped property'
+    set_fact:
+      result: '{{ result | combine({"skipped": false}, recursive=True) }}'
+    no_log: True
 
   - name: 'Enrich with update_status'
     include_tasks: update_status.yaml

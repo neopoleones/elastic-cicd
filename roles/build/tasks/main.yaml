@@ -53,17 +53,19 @@
 - name: 'Test build'
   vars:
     tasks:
-      - update_components
-      - update_index_templates
-
       - create_indices
-      - update_index_settings
-      - update_index_mappings
       - update_index_aliases
 
+      - update_components
       - update_ilm
+      - update_index_templates
+
+      - update_index_settings
+      - update_index_mappings
+
       - update_cluster_settings
     is_rollback: false
+    status_codes: []
 
   loop: "{{ tasks }}"
   loop_control:

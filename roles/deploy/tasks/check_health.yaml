@@ -1,0 +1,33 @@
+# Checks if cluster's status is red
+#
+# Arguments:
+#   curr_elastic_host: where to check cluster status
+#   elastic_user: str
+#   elastic_password: str
+#
+# Updates:
+#   update_status (if status is red)
+
+
+- block:
+  - name: 'Issue the status check'
+    uri:
+      url: "{{ curr_elastic_host }}/_cat/health?format=json"
+      validate_certs: False
+      method: "GET"
+
+      user: "{{ elastic_user }}"
+      password: "{{ elastic_password }}"
+      force_basic_auth: True
+    register: status_req
+  
+  - name: "Cluster is bad (status == red)"
+    set_fact:
+      update_status: "{{ (update_status|int) + 1}}"
+    when: c_health.status == "red"
+
+  - debug:
+      msg: "Cluster is ok (status != red)"
+    when: c_health.status != "red"
+  vars:
+    c_health: "{{ status_req.json | first }}"
